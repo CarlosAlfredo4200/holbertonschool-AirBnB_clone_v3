@@ -5,7 +5,7 @@ Contains the TestFileStorageDocs classes
 
 from datetime import datetime
 import inspect
-import models 
+import models
 from models.engine import file_storage
 from models.amenity import Amenity
 from models.base_model import BaseModel
@@ -114,28 +114,34 @@ class TestFileStorage(unittest.TestCase):
             js = f.read()
         self.assertEqual(json.loads(string), json.loads(js))
 
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
-    def test_get(self):
-        """ Tests method for obtaining an instance file storage"""
-        storage = FileStorage()
-        dic = {"name": "Vecindad"}
-        instance = State(**dic)
-        storage.new(instance)
-        storage.save()
-        storage = FileStorage()
-        get_instance = storage.get(State, instance.id)
-        self.assertEqual(get_instance, instance)
 
-    @unittest.skipIf(models.storage_t == 'db', "not testing file storage")
+class TestNewMethodsDb(unittest.TestCase):
+    """Test get and count methods in db_storage"""
+
+    def setUp(self):
+        """set up for db"""
+
+        self.obj_instance = State(name="Vienna")
+
+    def tearDown(self):
+        self.obj_instance.delete()
+
     def test_count(self):
-        """ Tests count method file storage """
-        storage = FileStorage()
-        dic = {"name": "Vecindad"}
-        state = State(**dic)
-        storage.new(state)
-        dic = {"name": "Mexico"}
-        city = City(**dic)
-        storage.new(city)
-        storage.save()
-        c = storage.count()
-        self.assertEqual(len(storage.all()), c)
+        """testing for count method"""
+
+        obj_count = models.storage.count(State)
+        self.obj_instance.save()
+        obj_second_count = models.storage.count(State)
+
+        self.assertEqual(obj_count + 1, obj_second_count)
+
+    def test_get(self):
+        """testing for get method"""
+
+        self.obj_instance.save()
+        id = self.obj_instance.id
+        get_obj = models.storage.get(State, id)
+
+        self.assertEqual(id, get_obj.id)
+        self.assertIsInstance(get_obj, State)
+        self.assertEqual(type(id), str)

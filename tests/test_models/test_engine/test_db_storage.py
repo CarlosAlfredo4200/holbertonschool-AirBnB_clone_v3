@@ -18,7 +18,6 @@ import json
 import os
 import pep8
 import unittest
-from models import storage
 DBStorage = db_storage.DBStorage
 classes = {"Amenity": Amenity, "City": City, "Place": Place,
            "Review": Review, "State": State, "User": User}
@@ -70,7 +69,7 @@ test_db_storage.py'])
 
 
 class TestFileStorage(unittest.TestCase):
-    """Test the FileStorage class"""
+    """This Test the FileStorage class """
     @unittest.skipIf(models.storage_t != 'db', "not testing db storage")
     def test_all_returns_dict(self):
         """Test that all returns a dictionaty"""
@@ -88,23 +87,34 @@ class TestFileStorage(unittest.TestCase):
     def test_save(self):
         """Test that save properly saves objects to file.json"""
 
-    def test_get_db(self):
-        """ Tests method for obtaining an instance db storage"""
-        dic = {"name": "Cundinamarca"}
-        instance = State(**dic)
-        storage.new(instance)
-        storage.save()
-        get_instance = storage.get(State, instance.id)
-        self.assertEqual(get_instance, instance)
+
+class TestNewMethodsDb(unittest.TestCase):
+    """Test get and count methods in db_storage"""
+
+    def setUp(self):
+        """set up for db"""
+
+        self.obj_instance = State(name="Vienna")
+
+    def tearDown(self):
+        self.obj_instance.delete()
 
     def test_count(self):
-        """ Tests count method db storage """
-        dic = {"name": "Vecindad"}
-        state = State(**dic)
-        storage.new(state)
-        dic = {"name": "Mexico", "state_id": state.id}
-        city = City(**dic)
-        storage.new(city)
-        storage.save()
-        c = storage.count()
-        self.assertEqual(len(storage.all()), c)
+        """testing for count method"""
+
+        obj_count = models.storage.count(State)
+        self.obj_instance.save()
+        obj_second_count = models.storage.count(State)
+
+        self.assertEqual(obj_count + 1, obj_second_count)
+
+    def test_get(self):
+        """testing for get method"""
+
+        self.obj_instance.save()
+        id = self.obj_instance.id
+        get_obj = models.storage.get(State, id)
+
+        self.assertEqual(id, get_obj.id)
+        self.assertIsInstance(get_obj, State)
+        self.assertEqual(type(id), str)
